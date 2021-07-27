@@ -27,6 +27,8 @@ import string
 import urllib.request
 import os.path
 import threading
+sys.path.append('/home/mike/work/xmlfuzzing/rstr') # local link to local installation of rstr library
+from rstr import xeger as randomStrFromRegex
 
 XSDNS = 'http://www.w3.org/2001/XMLSchema'
 loadedSchemas = {}
@@ -63,6 +65,8 @@ def generateBaseType(type, restrictions = None):
                 minLength = maxLength = restrictions.length[0]
             if restrictions.enumerations:
                 return random.choice(restrictions.enumerations)
+            if restrictions.pattern:
+                return randomStrFromRegex(restrictions.pattern[0])
         return randomString(chooseLength(minLength, maxLength))
     if type == 'xs:NMTOKEN' or type == 'xs:token' or type == 'xs:Name' or type == 'xs:NCName' or type == 'xs:ID':
         return randomString(16)
@@ -90,6 +94,7 @@ class Restrictions:
         self.minLength = []
         self.maxLength = []
         self.enumerations = []
+        self.pattern = []
 
 def findSimpleType(schema, name):
     if name in schema.simpleTypes.keys():
@@ -132,14 +137,14 @@ def generateSimpleType(schema, simpleType, restrictions = None):
     minLength = []
     maxLength = []
     enumerations = []
+    patterns = []
     try:
         restriction = [node for node in simpleType.childNodes if node.localName == 'restriction'][0]
         length = [node for node in restriction.childNodes if node.localName == 'length']
         minLength = [node for node in restriction.childNodes if node.localName == 'minLength']
         maxLength = [node for node in restriction.childNodes if node.localName == 'maxLength']
         enumerations = [node for node in restriction.childNodes if node.localName == 'enumeration']
-        if [node for node in restriction.childNodes if node.localName == 'pattern']:
-            print('WARNING: simpleType %s has a pattern restriction' % simpleType.attributes['name'].value)
+        patterns = [node for node in restriction.childNodes if node.localName == 'pattern']
         base = restriction.attributes['base'].value
     except:
         if not base:
@@ -157,6 +162,8 @@ def generateSimpleType(schema, simpleType, restrictions = None):
     restrictions.maxLength.extend([restriction.attributes['value'].value for restriction in maxLength])
     if not restrictions.enumerations:
         restrictions.enumerations = [enumeration.attributes['value'].value for enumeration in enumerations]
+    if not restrictions.pattern:
+        restrictions.pattern = [pattern.attributes['value'].value for pattern in patterns]
         
     if filterChildren(simpleType, 'list'):
         value = generateList(schema, filterChildren(simpleType, 'list')[0], restrictions)[0].data
