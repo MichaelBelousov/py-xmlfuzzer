@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+targetNamespace="https://www.w3schools.com"
+xmlns="https://www.w3schools.com"
+elementFormDefault="unqualified"
+attributeFormDefault="unqualified">
+
+<xs:simpleType name="versionStringV3">
+  <xs:restriction base="xs:string">
+    <xs:length value="8" />
+    <xs:pattern value="([0-9]{2}\.){2}[0-9]{2}" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="schemaname">
+  <xs:restriction base="xs:string">
+    <xs:pattern value="[a-zA-Z-_]{1,100}" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="alias">
+  <xs:restriction base="xs:string">
+    <xs:pattern value="[a-z]{5,20}" />
+  </xs:restriction>
+</xs:simpleType>
+
+
+<xs:complexType name="ecschema">
+  <xs:attribute name="schemaName" type="schemaname" use="required" />
+  <xs:attribute name="alias" type="alias" use="required" />
+  <xs:attribute name="version" type="versionStringV3" use="required" />
+  <xs:attribute name="description" type="xs:string" />
+  <xs:attribute name="displayLabel" type="xs:string" />
+  <xs:sequence>
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="ECSchemaReference">
+        <xs:complexType>
+          <xs:attribute name="name" type="schemaname" use="required" />
+          <xs:attribute name="alias" type="alias" use="required" />
+          <xs:attribute name="version" type="versionStringV3" use="required" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="ECClass">
+        <xs:complexType>
+          <xs:element name="CustomAttributes">
+            <xs:any />
+          </xs:element>
+          <xs:attribute name="typeName" type="schemaname" use="required" />
+          <xs:attribute name="isStruct" type="xs:boolean" /> <!-- this is an ecxml.2.0 thing -->
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:element name="ECSchema" type="ecschema" />
+
+</xs:schema> 
